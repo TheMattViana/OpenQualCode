@@ -109,7 +109,7 @@ export const ProjectLauncher: React.FC<Props> = ({ onOpenProject, onCreateProjec
               </button>
             </div>
           </div>
-          <div className="text-xs text-slate-500">v1.0.0</div>
+          <div className="text-xs text-slate-500">v1.1.0 (Multi-Select)</div>
           <button onClick={loadAutosave} className="mt-2 text-xs text-orange-400 hover:text-orange-300 underline text-left">
             Recover Unsaved Work
           </button>
