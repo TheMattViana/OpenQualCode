@@ -15,5 +15,5 @@ export default defineConfig({
       protocolImports: true,
     }),
   ],
-  base: './',
+  base: '/OpenSource-Qualitative-Coding-App/',
 })
