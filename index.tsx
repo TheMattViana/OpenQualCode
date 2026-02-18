@@ -1,10 +1,8 @@
 import React from 'react';
+import './index.css';
 import ReactDOM from 'react-dom/client';
 import App from './App';
-
-// If you have a local CSS file, import it here. 
-// If not, this line can be removed, but standard setups usually have it.
-// import './index.css'; 
+import { AuthProvider } from './contexts/AuthContext';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -39,9 +37,10 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { has
 
 const root = ReactDOM.createRoot(rootElement);
 root.render(
-  <React.StrictMode>
-    <ErrorBoundary>
+  // Removed React.StrictMode to mitigate Firestore double-invocation issues in dev
+  <ErrorBoundary>
+    <AuthProvider>
       <App />
-    </ErrorBoundary>
-  </React.StrictMode>
+    </AuthProvider>
+  </ErrorBoundary>
 );
