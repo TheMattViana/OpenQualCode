@@ -15,5 +15,5 @@ export default defineConfig({
       protocolImports: true,
     }),
   ],
-  base: '/OpenQualCode/',
+  base: './',
 })

@@ -291,7 +291,14 @@ export const ProjectLauncher: React.FC<Props> = ({ onOpenProject, onCreateProjec
               </div>
             ) : (
               <button
-                onClick={signInWithGoogle}
+                onClick={async () => {
+                  try {
+                    await signInWithGoogle();
+                  } catch (e: any) {
+                    console.error("Login failed", e);
+                    openAlert("Login Error", e.message || "Failed to sign in. Check console for details.", 'alert');
+                  }
+                }}
                 className="w-full py-4 px-6 bg-white/10 hover:bg-white/20 rounded-xl flex items-center space-x-3 transition-all border border-slate-700 hover:border-slate-500 group mb-6"
               >
                 <div className="bg-white p-2 rounded-lg">
