@@ -15,5 +15,5 @@ export default defineConfig({
       protocolImports: true,
     }),
   ],
-  base: '/QualCode-Vibed/',
+  base: '/OpenQualCode/',
 })
