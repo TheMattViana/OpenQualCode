@@ -1,8 +1,8 @@
 {
   "name": "qual-analyst-pro",
   "private": true,
-  "version": "0.1.1",
-  "homepage": "https://themattviana.github.io/OpenSource-Qualitative-Coding-App",
+  "version": "0.1.2",
+  "homepage": "https://themattviana.github.io/OpenQualCode",
   "type": "module",
   "scripts": {
     "dev": "vite",
