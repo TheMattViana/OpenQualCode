@@ -124,7 +124,7 @@ dist
 Thumbs.db
 
 # production
-/dist
+dist/
 /release
 
 # Firebase
