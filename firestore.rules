@@ -17,7 +17,9 @@ service cloud.firestore {
         request.auth.token.email.lower() in resource.data.memberEmails;
 
       // Members can update
-      allow update: if request.auth != null && (
+      allow update: if request.auth != null && 
+        (!('ownerId' in request.resource.data.diff(resource.data).affectedKeys()) || request.auth.uid == resource.data.ownerId) &&
+        (
         // Case 1: Already a member
         request.auth.token.email.lower() in resource.data.memberEmails ||
         // Case 2: Joining via Invitation
@@ -35,16 +37,30 @@ service cloud.firestore {
 
       // ─── Transcripts: Members can read/write ───
       match /transcripts/{transcriptId} {
-        allow read, write: if request.auth != null &&
+        allow read, create, update: if request.auth != null &&
           request.auth.token.email.lower() in
           get(/databases/$(database)/documents/projects/$(projectId)).data.memberEmails;
+        allow delete: if request.auth != null &&
+          request.auth.token.email.lower() in get(/databases/$(database)/documents/projects/$(projectId)).data.memberEmails &&
+          (
+            request.auth.uid == get(/databases/$(database)/documents/projects/$(projectId)).data.ownerId ||
+            (request.auth.uid in get(/databases/$(database)/documents/projects/$(projectId)).data.members && get(/databases/$(database)/documents/projects/$(projectId)).data.members[request.auth.uid].role == 'admin') ||
+            request.auth.uid == resource.data.uploadedBy
+          );
       }
 
       // ─── Codes: Members can read/write (shared codebook) ───
       match /codes/{codeId} {
-        allow read, write: if request.auth != null &&
+        allow read, create, update: if request.auth != null &&
           request.auth.token.email.lower() in
           get(/databases/$(database)/documents/projects/$(projectId)).data.memberEmails;
+        allow delete: if request.auth != null &&
+          request.auth.token.email.lower() in get(/databases/$(database)/documents/projects/$(projectId)).data.memberEmails &&
+          (
+            request.auth.uid == get(/databases/$(database)/documents/projects/$(projectId)).data.ownerId ||
+            (request.auth.uid in get(/databases/$(database)/documents/projects/$(projectId)).data.members && get(/databases/$(database)/documents/projects/$(projectId)).data.members[request.auth.uid].role == 'admin') ||
+            request.auth.uid == resource.data.createdBy
+          );
       }
 
       // ─── User Data: Members can read all (collaboration), only owner writes ───
@@ -60,23 +76,45 @@ service cloud.firestore {
       }
       // ─── Sticky Notes: Members can read/write ───
       match /notes/{noteId} {
-        allow read, write: if request.auth != null &&
+        allow read, create, update: if request.auth != null &&
           request.auth.token.email.lower() in
           get(/databases/$(database)/documents/projects/$(projectId)).data.memberEmails;
+        allow delete: if request.auth != null &&
+          request.auth.token.email.lower() in get(/databases/$(database)/documents/projects/$(projectId)).data.memberEmails &&
+          (
+            request.auth.uid == get(/databases/$(database)/documents/projects/$(projectId)).data.ownerId ||
+            (request.auth.uid in get(/databases/$(database)/documents/projects/$(projectId)).data.members && get(/databases/$(database)/documents/projects/$(projectId)).data.members[request.auth.uid].role == 'admin') ||
+            request.auth.uid == resource.data.authorId
+          );
       }
 
       // ─── Chat: Members can read/write ───
       match /chat/{messageId} {
-        allow read, write: if request.auth != null &&
+        allow read, create, update: if request.auth != null &&
           request.auth.token.email.lower() in
           get(/databases/$(database)/documents/projects/$(projectId)).data.memberEmails;
+        allow delete: if request.auth != null &&
+          request.auth.token.email.lower() in get(/databases/$(database)/documents/projects/$(projectId)).data.memberEmails &&
+          (
+            request.auth.uid == get(/databases/$(database)/documents/projects/$(projectId)).data.ownerId ||
+            (request.auth.uid in get(/databases/$(database)/documents/projects/$(projectId)).data.members && get(/databases/$(database)/documents/projects/$(projectId)).data.members[request.auth.uid].role == 'admin') ||
+            request.auth.uid == resource.data.senderId
+          );
       }
 
       // ─── Direct Messages: Members can read/write ───
       match /directMessages/{messageId} {
-        allow read, write: if request.auth != null &&
-          request.auth.token.email.lower() in
-          get(/databases/$(database)/documents/projects/$(projectId)).data.memberEmails;
+        allow read: if request.auth != null &&
+          request.auth.token.email.lower() in get(/databases/$(database)/documents/projects/$(projectId)).data.memberEmails &&
+          (request.auth.uid == resource.data.fromId || request.auth.uid == resource.data.toId);
+
+        allow create: if request.auth != null &&
+          request.auth.token.email.lower() in get(/databases/$(database)/documents/projects/$(projectId)).data.memberEmails &&
+          (request.auth.uid == request.resource.data.fromId || request.auth.uid == request.resource.data.toId);
+
+        allow update, delete: if request.auth != null &&
+          request.auth.token.email.lower() in get(/databases/$(database)/documents/projects/$(projectId)).data.memberEmails &&
+          (request.auth.uid == resource.data.fromId || request.auth.uid == resource.data.toId);
       }
 
       // ─── Code History: Members can read/write ───
@@ -124,8 +162,9 @@ service cloud.firestore {
 
     // ─── Invitations ───
     match /invitations/{invitationId} {
-      // Any authenticated user can create an invitation
-      allow create: if request.auth != null;
+      // Only project owner can create an invitation for the project
+      allow create: if request.auth != null &&
+        request.auth.uid == get(/databases/$(database)/documents/projects/$(request.resource.data.projectId)).data.ownerId;
 
       // Invited user can read their invitations
       allow read: if request.auth != null &&
